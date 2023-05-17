@@ -1,0 +1,26 @@
+{
+  "name": "next-libs",
+  "version": "0.0.0",
+  "description": "monorepo for various next libraries ",
+  "private": true,
+  "scripts": {
+    "packages:build": "pnpm run -r build",
+    "packages:test": "pnpm run -r --parallel test",
+    "packages:lint": "pnpm run -r --parallel lint"
+  },
+  "keywords": [],
+  "author": "farbenmeer GmbH (https://farbenmeer.de/)",
+  "license": "MIT",
+  "url": "https://farbenmeer.de/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/farbenmeer/next-libs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/farbenmeer/next-libs/issues"
+  },
+  "homepage": "https://github.com/farbenmeer/next-libs#readme",
+  "devDependencies": {
+    "tsup": "^6.7.0"
+  }
+}

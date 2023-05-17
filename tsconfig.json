@@ -1,0 +1,25 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+
+    "module": "esnext",
+    "moduleResolution": "node",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    "incremental": true,
+    "isolatedModules": true,
+    "downlevelIteration": true,
+
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "noEmit": true,
+    "jsx": "preserve"
+  },
+  "references": [{ "path":  "./tsconfig.node.json" }],
+  "exclude": ["node_modules", "**/node_modules", "**/dist", "**/test", "**/.next"]
+}
