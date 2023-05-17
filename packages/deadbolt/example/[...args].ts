@@ -17,7 +17,7 @@ export const { apiRoute, getData, authorized } = oauth2<{
   config: {
     crypto,
     secret: "309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76f",
-    baseUrl: "http://localhost:3000/api/auth",
+    baseUrl: "https://www.myproductionhost.com/api/auth",
     defaultProvider: "discord",
   },
   providers: [
@@ -34,8 +34,8 @@ export const { apiRoute, getData, authorized } = oauth2<{
   ],
   plugins: [
     stateProxy({
-      proxyTo: "https://www.myproductionhost.com/api/auth",
-      allowedOrigins: ["http://localhost:3000"],
+      proxyTo: "http://localhost:3000/api/auth",
+      allowedOrigins: ["http://localhost:3000", "https://www.myproductionhost.com/api/auth"],
       allowedProviders: ["discord", "azure.tenant-id-here"],
     }),
     cookieStorage(),
