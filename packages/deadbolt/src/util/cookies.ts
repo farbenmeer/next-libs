@@ -12,16 +12,20 @@ export interface CookieUtil {
 }
 
 export function cookies(req: NextApiRequest | NextRequest, res?: NextApiResponse | NextResponse) {
-
-  const cookies: [key: string, value: string, options?: Omit<ResponseCookie, "name" | "value">][] = [];
+  const cookies: [key: string, value: string, options?: Omit<ResponseCookie, "name" | "value">][] =
+    [];
 
   function get(key: string) {
-    if ("has" in req.cookies && "get" in req.cookies && typeof req.cookies.has === "function" && typeof req.cookies.get === "function") {
+    if (
+      "has" in req.cookies &&
+      "get" in req.cookies &&
+      typeof req.cookies.has === "function" &&
+      typeof req.cookies.get === "function"
+    ) {
       if (req.cookies.has(key)) return req.cookies.get(key)?.value;
       else return undefined;
-    }
-    else {
-      return (req.cookies as Record<string, string | undefined>)[key] as string | undefined
+    } else {
+      return (req.cookies as Record<string, string | undefined>)[key] as string | undefined;
     }
   }
 

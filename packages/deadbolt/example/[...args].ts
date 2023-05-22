@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   oauth2,
   cookieStorage,
@@ -41,11 +42,11 @@ export const { apiRoute, getData, authorized } = oauth2<{
     }),
     cookieStorage(),
     externalStorage({
-      setState(key) {
-        console.log(key);
+      setState(key, context) {
+        // do something with key and context
       },
-      setData(key) {
-        console.log(key);
+      setData(key, context) {
+        // do something with key and context
       },
     }),
   ],

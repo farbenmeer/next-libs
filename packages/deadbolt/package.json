@@ -11,7 +11,8 @@
   "scripts": {
     "build": "tsup",
     "test": "jest",
-    "lint": "eslint --ext .ts,.tsx ."
+    "lint": "eslint --ext .ts,.tsx .",
+    "lint:fix": "eslint --fix --ext .ts,.tsx ."
   },
   "dependencies": {
     "@farbenmeer/http": "workspace:^",

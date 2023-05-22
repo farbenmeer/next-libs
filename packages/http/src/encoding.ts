@@ -1,7 +1,7 @@
-
-
-
-export function extendedFlattenedMap(values: Record<string, unknown>, prefix: string = ""): { key: string, value: unknown }[] {
+export function extendedFlattenedMap(
+  values: Record<string, unknown>,
+  prefix: string = "",
+): { key: string; value: unknown }[] {
   if (typeof values !== "object" || !values) return [{ key: prefix, value: values }];
   return Object.entries(values).flatMap(([key, value]) => {
     key = prefix ? `${prefix}[${key}]` : key;
@@ -23,7 +23,6 @@ export function extendedFlattenedMap(values: Record<string, unknown>, prefix: st
   });
 }
 
-
 export function formData(values: Record<string, unknown>) {
   const form = new FormData();
   for (const { key, value } of extendedFlattenedMap(values)) {
@@ -39,13 +38,16 @@ export function formData(values: Record<string, unknown>) {
   return form;
 }
 
-export function buildUrl(url: string | URL, base: string | undefined, params: Record<string, unknown>): URL {
+export function buildUrl(
+  url: string | URL,
+  base: string | undefined,
+  params: Record<string, unknown>,
+): URL {
   if (typeof url === "string") url = new URL(url, base);
   else url = new URL(url);
   const q = url.searchParams;
   const additional = urlParams(params);
-  for (const [key, value] of additional.entries())
-    if (!q.has(key)) q.set(key, value);
+  for (const [key, value] of additional.entries()) if (!q.has(key)) q.set(key, value);
   return url;
 }
 

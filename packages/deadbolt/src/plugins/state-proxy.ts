@@ -1,6 +1,5 @@
 import { OAuth2PluginInit } from "src/types";
 
-
 export interface StateProxyOptions {
   proxyTo: string;
   allowedOrigins?: (string | RegExp)[];
@@ -34,13 +33,21 @@ export function stateProxy(options: StateProxyOptions): OAuth2PluginInit {
     return {
       async generateState({ flow }) {
         const path = `${proxyTo}/${flow.provider}/${flow.step}`;
-        flow.state = await encrypt(JSON.stringify({ path, referer: flow.referer, provider: flow.provider }));
+        flow.state = await encrypt(
+          JSON.stringify({ path, referer: flow.referer, provider: flow.provider }),
+        );
       },
 
       async reviveState({ res, flow }) {
         if (!flow.state || !flow.code) return;
         const state = await tryParse(flow.state);
-        if (!state || !state.path || !matchesOrigins(state.path) || !matchesProvider(state.provider)) return;
+        if (
+          !state ||
+          !state.path ||
+          !matchesOrigins(state.path) ||
+          !matchesProvider(state.provider)
+        )
+          return;
         const url = new URL(state.path);
         const p = url.searchParams;
         p.set("state", flow.state);

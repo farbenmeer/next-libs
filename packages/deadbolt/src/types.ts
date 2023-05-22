@@ -90,7 +90,6 @@ export interface OAuth2Plugin {
   retrieveState?(context: OAuth2RequestContext): PromiseOr<void | boolean>;
 }
 
-
 /**
  * hooks and configuration for an oauth2 provider
  */
@@ -123,7 +122,7 @@ export interface OAuth2Provider {
   loadData?(context: OAuth2RequestContext): PromiseOr<void | boolean>;
 }
 
-export interface OAuth2Props<Data> {
+export interface OAuth2Props {
   providers: OAuth2Provider[];
   plugins?: (OAuth2Plugin | OAuth2PluginInit)[];
   config: OAuth2Config;

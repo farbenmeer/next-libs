@@ -1,17 +1,15 @@
 import { buildUrl, HttpClient } from "@farbenmeer/http";
-import {
-  OAuth2Provider,
-  OAuth2ProviderData,
-  OAuth2RequestContext,
-  PromiseOr
-} from "src/types";
+import { OAuth2Provider, OAuth2ProviderData, OAuth2RequestContext, PromiseOr } from "src/types";
 
 export interface AzureProviderConfig {
   tenant: string;
   clientId: string;
   clientSecret: string;
   scope?: string;
-  loadData?(context: OAuth2RequestContext, config: { tenant: string } & OAuth2ProviderData<any>): PromiseOr<any>;
+  loadData?(
+    context: OAuth2RequestContext,
+    config: { tenant: string } & OAuth2ProviderData<any>,
+  ): PromiseOr<any>;
 }
 
 export interface AzureTokenResponse {
@@ -34,32 +32,36 @@ export function azureProvider(config: AzureProviderConfig): OAuth2Provider {
     async authorize({ config, res, flow }) {
       const redirectUri = `${config.baseUrl}/azure.${tenant}/authorize`;
       if (!res || !("redirect" in res)) return;
-      res.redirect(buildUrl(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize`, undefined, {
-        response_type: "code",
-        redirect_uri: redirectUri,
-        client_id: clientId,
-        state: flow.state,
-        scope,
-      }).toString());
+      res.redirect(
+        buildUrl(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize`, undefined, {
+          response_type: "code",
+          redirect_uri: redirectUri,
+          client_id: clientId,
+          state: flow.state,
+          scope,
+        }).toString(),
+      );
       return true;
     },
 
     async exchange({ config, flow, connected }) {
       const { state, code } = flow;
       const now = new Date();
-      const { data, raw } = await client.post<AzureTokenResponse>(`/${tenant}/oauth2/v2.0/token`, {
+      const { data } = await client.post<AzureTokenResponse>(`/${tenant}/oauth2/v2.0/token`, {
         grant_type: "authorization_code",
         client_id: clientId,
         client_secret: clientSecret,
         redirect_uri: `${config.baseUrl}/azure.${tenant}/authorize`,
-        scope, state, code
+        scope,
+        state,
+        code,
       });
       if (data.error) throw new Error(data.error);
       connected[`azure.${tenant}`] = {
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
         tokenType: data.token_type ?? "Bearer",
-        accessTokenExpires: new Date( +now + data.expires_in * 1000),
+        accessTokenExpires: new Date(+now + data.expires_in * 1000),
       };
     },
 
@@ -95,7 +97,7 @@ export function azureProvider(config: AzureProviderConfig): OAuth2Provider {
       });
       Object.assign(context.connected[`azure.${tenant}`], {
         accessToken: data.access_token,
-        accessTokenExpires: new Date(+now + data.expires_in * 1000)
+        accessTokenExpires: new Date(+now + data.expires_in * 1000),
       });
     },
   };

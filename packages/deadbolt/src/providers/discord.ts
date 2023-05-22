@@ -27,25 +27,29 @@ export function discordProvider(config: DiscordProviderConfig): OAuth2Provider {
     async authorize({ config, res, flow }) {
       const redirectUri = `${config.baseUrl}/discord/authorize`;
       if (!res || !("redirect" in res)) return;
-      res.redirect(buildUrl("https://discordapp.com/api/oauth2/authorize", undefined, {
-        response_type: "code",
-        redirect_uri: redirectUri,
-        client_id: clientId,
-        state: flow.state,
-        scope,
-      }).toString());
+      res.redirect(
+        buildUrl("https://discordapp.com/api/oauth2/authorize", undefined, {
+          response_type: "code",
+          redirect_uri: redirectUri,
+          client_id: clientId,
+          state: flow.state,
+          scope,
+        }).toString(),
+      );
       return true;
     },
 
     async exchange({ config, flow, connected }) {
       const { state, code } = flow;
       const now = new Date();
-      const { data, raw } = await client.post<DiscordTokenResponse>("/api/oauth2/token", {
+      const { data } = await client.post<DiscordTokenResponse>("/api/oauth2/token", {
         grant_type: "authorization_code",
         client_id: clientId,
         client_secret: clientSecret,
         redirect_uri: `${config.baseUrl}/discord/authorize`,
-        scope, state, code
+        scope,
+        state,
+        code,
       });
       if (data.error) throw new Error(data.error);
       connected.discord = {
@@ -64,7 +68,7 @@ export function discordProvider(config: DiscordProviderConfig): OAuth2Provider {
       if (data.error) throw new Error(data.error);
       context.connected.discord.data = {
         ...data,
-        avatarUrl: `//cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png`
+        avatarUrl: `//cdn.discordapp.com/avatars/${data.id}/${data.avatar}.png`,
       };
     },
 
@@ -96,6 +100,6 @@ export function discordProvider(config: DiscordProviderConfig): OAuth2Provider {
         accessToken: data.access_token,
         accessTokenExpires: new Date(+now + data.expires_in * 1000),
       });
-    }
+    },
   };
 }

@@ -6,11 +6,11 @@ const config: Config = {
     "^.+\\.tsx?$": "@swc/jest",
   },
   moduleNameMapper: {
-    "^src/(.*)": "<rootDir>/src/$1"
+    "^src/(.*)": "<rootDir>/src/$1",
   },
   collectCoverage: true,
   collectCoverageFrom: ["src/**/*.ts", "!**.test.{ts,tsx,js,jsx}", "!**/node_modules/**"],
-  coverageReporters: ["lcovonly"]
+  coverageReporters: ["lcovonly"],
 };
 
 export default config;

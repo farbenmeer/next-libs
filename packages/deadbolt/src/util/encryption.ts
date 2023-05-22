@@ -7,7 +7,7 @@ export interface EncryptionOptions {
 }
 
 export function encryption(options: EncryptionOptions) {
-  const { subtle, getRandomValues } = options.crypto;
+  const { subtle } = options.crypto;
 
   function getRandomIv() {
     return crypto.getRandomValues(new Uint8Array(options.ivLength));
@@ -46,7 +46,9 @@ export function getRandomString(length: number, crypto: Crypto) {
 }
 
 export function bytesToString(buffer: Uint8Array): string {
-  return Array.from(buffer).map(byte => String.fromCharCode(byte)).join("");
+  return Array.from(buffer)
+    .map(byte => String.fromCharCode(byte))
+    .join("");
 }
 
 export function stringToBytes(text: string): Uint8Array {

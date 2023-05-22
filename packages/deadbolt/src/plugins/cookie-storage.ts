@@ -1,10 +1,12 @@
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import {
   OAuth2FlowContext,
-  OAuth2Plugin, OAuth2PluginInit, OAuth2ProviderData,
+  OAuth2Plugin,
+  OAuth2PluginInit,
+  OAuth2ProviderData,
   OAuth2ProviderDataMap,
   OAuth2RequestContext,
-  PromiseOr
+  PromiseOr,
 } from "src/types";
 import { getRandomString } from "src/util/encryption";
 
@@ -24,7 +26,7 @@ export function cookieStorage({
       const { state, referer, provider } = flow;
       const value = JSON.stringify({ state, referer, provider });
       if (!state) cookies.set(`${name}.state`, "");
-      else cookies.set(`${name}.state`, await encrypt(value) as string, cookie);
+      else cookies.set(`${name}.state`, (await encrypt(value)) as string, cookie);
     },
 
     async retrieveState(context) {
@@ -33,9 +35,10 @@ export function cookieStorage({
       try {
         const state = JSON.parse(await decrypt(value));
         for (const key of ["state", "code", "referer"] as const)
-          if (state[key] !== undefined && context.flow[key] == null)
-            context.flow[key] = state[key];
-      } catch { /* ignore */ }
+          if (state[key] !== undefined && context.flow[key] == null) context.flow[key] = state[key];
+      } catch {
+        /* ignore */
+      }
     },
 
     async storeData({ connected, cookies }) {
@@ -45,7 +48,7 @@ export function cookieStorage({
         const { data: _, ...state } = data;
         cookies.set(`${name}.data.${provider}`, await encrypt(JSON.stringify(state)), {
           expires: state.refreshTokenExpires,
-          ...cookie
+          ...cookie,
         });
       }
     },
@@ -56,17 +59,20 @@ export function cookieStorage({
         if (!key.startsWith(`${name}.data.`) || !value) continue;
         const provider = key.slice(`${name}.data.`.length);
         try {
-          const { tokenType, accessToken, accessTokenExpires, refreshToken, refreshTokenExpires } = JSON.parse(await decrypt(value)) as OAuth2ProviderData<any>;
-          Object.assign(connected[provider] ??= {}, {
+          const { tokenType, accessToken, accessTokenExpires, refreshToken, refreshTokenExpires } =
+            JSON.parse(await decrypt(value)) as OAuth2ProviderData<any>;
+          Object.assign((connected[provider] ??= {}), {
             tokenType,
             accessToken,
             accessTokenExpires: accessTokenExpires && new Date(accessTokenExpires),
             refreshToken,
             refreshTokenExpires: refreshTokenExpires && new Date(refreshTokenExpires),
           });
-        } catch (e) { /* ignore */ }
+        } catch (e) {
+          /* ignore */
+        }
       }
-    }
+    },
   });
 }
 
@@ -74,9 +80,15 @@ export interface ExternalStorageOptions {
   name?: string;
   cookie?: Omit<ResponseCookie, "name" | "value">;
   createKey?(context: OAuth2RequestContext): PromiseOr<string>;
-  getState?(key: string, context: OAuth2RequestContext): PromiseOr<Partial<OAuth2FlowContext> | undefined>;
+  getState?(
+    key: string,
+    context: OAuth2RequestContext,
+  ): PromiseOr<Partial<OAuth2FlowContext> | undefined>;
   setState?(key: string, context: OAuth2RequestContext): PromiseOr<void>;
-  getData?(key: string, context: OAuth2RequestContext): PromiseOr<Partial<OAuth2ProviderDataMap<any>>>;
+  getData?(
+    key: string,
+    context: OAuth2RequestContext,
+  ): PromiseOr<Partial<OAuth2ProviderDataMap<any>>>;
   setData?(key: string, context: OAuth2RequestContext): PromiseOr<void>;
 }
 
@@ -128,7 +140,7 @@ export function externalStorage({
       const connected = await getData(context.cookies.get(name)!, context);
       if (!connected) return;
       for (const [provider, data] of Object.entries(connected))
-        Object.assign(context.connected[provider] ??= {}, data);
-    }
-  }
+        Object.assign((context.connected[provider] ??= {}), data);
+    },
+  };
 }
