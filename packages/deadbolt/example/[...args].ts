@@ -4,7 +4,7 @@ import {
   externalStorage,
   stateProxy,
   azureProvider,
-  discordProvider
+  discordProvider,
 } from "src";
 
 // use getData in handlers to get access to tokens and user data
@@ -16,7 +16,8 @@ export const { apiRoute, getData, authorized } = oauth2<{
 }>({
   config: {
     crypto,
-    secret: "309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76f",
+    secret:
+      "309ecc489c12d6eb4cc40f50c902f2b4d0ed77ee511a7c7a9bcd3ca86d4cd86f989dd35bc5ff499670da34255b45b0cfd830e81f605dcf7dc5542e93ae9cd76f",
     baseUrl: "https://www.myproductionhost.com/api/auth",
     defaultProvider: "discord",
   },
@@ -29,7 +30,7 @@ export const { apiRoute, getData, authorized } = oauth2<{
     azureProvider({
       clientId: "id here",
       clientSecret: "secret here",
-      tenant: "tenant id here"
+      tenant: "tenant id here",
     }),
   ],
   plugins: [
@@ -45,8 +46,8 @@ export const { apiRoute, getData, authorized } = oauth2<{
       },
       setData(key) {
         console.log(key);
-      }
-    })
+      },
+    }),
   ],
 });
 
