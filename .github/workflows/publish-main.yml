@@ -13,7 +13,7 @@ jobs:
         with:
           node-version: '18'
       - run: npm i -g pnpm
-      - run: pnpm ci
+      - run: pnpm i
       - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter && chmod +x ./cc-test-reporter && ./cc-test-reporter before-build
       - run: pnpm run packages:build
       - run: pnpm run packages:lint
