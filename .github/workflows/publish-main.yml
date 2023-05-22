@@ -18,11 +18,11 @@ jobs:
       - run: pnpm run packages:build
       - run: pnpm run packages:lint
       - run: pnpm run packages:test
-      - run: ./cc-test-reporter format-coverage -t lcov packages/*/coverage/lcov.info
-      - run: ./cc-test-reporter sum-coverage
-      - run: ./cc-test-reporter upload-coverage
-        env:
-          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      # - run: ./cc-test-reporter format-coverage -t lcov packages/*/coverage/lcov.info
+      # - run: ./cc-test-reporter sum-coverage
+      # - run: ./cc-test-reporter upload-coverage
+      #   env:
+      #     CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
       - run: pnpx semantic-release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
