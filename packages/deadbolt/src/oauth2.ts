@@ -8,7 +8,8 @@ import {
   OAuth2ProviderData,
   OAuth2RequestContext,
   OAuth2Config,
-  OAuth2ProviderDataMap, OAuth2PluginInit,
+  OAuth2ProviderDataMap,
+  OAuth2PluginInit,
 } from "src/types";
 import { cookies } from "src/util/cookies";
 import { encryption, getRandomString } from "src/util/encryption";
