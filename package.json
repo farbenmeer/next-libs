@@ -27,5 +27,8 @@
     "@semantic-release/github": "^8.0.7",
     "@semantic-release/release-notes-generator": "^11.0.1",
     "tsup": "^6.7.0"
+  },
+  "release": {
+    "branches": ["main"]
   }
 }
