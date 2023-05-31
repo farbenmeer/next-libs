@@ -6,7 +6,7 @@ import {
   stateProxy,
   azureProvider,
   discordProvider,
-} from "src";
+} from "src/index";
 
 // use getData in handlers to get access to tokens and user data
 // use authorized as a middleware
