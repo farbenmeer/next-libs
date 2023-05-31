@@ -14,24 +14,28 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with: { persist-credentials: false }
       - uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-      - run: npm i -g pnpm
-      - run: pnpm i
-      - run: curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter && chmod +x ./cc-test-reporter && ./cc-test-reporter before-build
-      - run: pnpm run packages:publish
+        with: { node-version: '18' }
+      - run: |
+          npm i -g pnpm
+          pnpm i
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+      - run: |
+          git config user.name "eyyy-nora"
+          git config user.email "nora@reichwald.me"
+          git remote set-url origin "https://${GH_TOKEN}@github.com/farbenmeer/next-libs"
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
       # - run: ./cc-test-reporter format-coverage -t lcov packages/*/coverage/lcov.info
       # - run: ./cc-test-reporter sum-coverage
       # - run: ./cc-test-reporter upload-coverage
       #   env:
       #     CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+      - run: pnpm packages:prepare
+      - run: pnpm release --token "${NPM_TOKEN}"
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-      - uses: changesets/actions@v1
-        with:
-          publish: pnpm packages:publish
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
