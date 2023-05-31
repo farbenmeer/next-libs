@@ -1,2 +1,2 @@
-export * from "./cookies";
+export * from "./cookieUtil";
 export * from "./encryption";

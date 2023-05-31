@@ -10,12 +10,14 @@ import {
   OAuth2Config,
   OAuth2ProviderDataMap,
   OAuth2PluginInit,
+  AnyRequest,
+  AnyResponse,
 } from "src/types";
-import { cookies } from "src/util/cookies";
+import { cookieUtil } from "src/util/cookieUtil";
 import { encryption, getRandomString } from "src/util/encryption";
 
-function initConfig(config: OAuth2Config): Required<OAuth2Config> {
-  const copy = { ...config };
+function initConfig(config: OAuth2Config, defaultProvider?: string): Required<OAuth2Config> {
+  const copy = { defaultProvider, ...config };
 
   copy.crypto ??= crypto;
   if (!copy.encrypt || !copy.decrypt) {
@@ -40,7 +42,10 @@ export function oauth2<Data>({ plugins = [], providers, config }: OAuth2Props) {
       context.flow.state = btoa(getRandomString(24, crypto));
     },
   })) as OAuth2PluginInit);
-  const initialisedConfig = initConfig(config);
+  const initialisedConfig = initConfig(
+    config,
+    providers.length === 1 ? providers[0].name : undefined,
+  );
   const initialisedPlugins = plugins.map(it =>
     typeof it === "function" ? it(initialisedConfig) : it,
   );
@@ -66,33 +71,17 @@ export function oauth2<Data>({ plugins = [], providers, config }: OAuth2Props) {
   const generateState = hook("generateState");
   const reviveState = hook("reviveState", true);
 
-  function buildContext(
-    req: NextApiRequest | NextRequest,
-    res?: NextApiResponse | NextResponse,
-    args?: string[],
-  ): OAuth2RequestContext {
-    const [providerName, step] = args ?? ((req as any).query.args as string[]);
+  function buildContext(req: AnyRequest, res?: AnyResponse, args?: string[]): OAuth2RequestContext {
+    const [provider, step] = args ?? ((req as any).query.args as string[]);
     const { code, state, referer }: Record<string, string> =
       step === "authorize" ? (req as any).query ?? {} : {};
     const realStep = code && state && step === "authorize" ? "exchange" : (step as never);
-    const flow: OAuth2FlowContext = {
-      code,
-      state,
-      referer,
-      provider: providerName,
-      step: realStep,
-    };
+    const flow: OAuth2FlowContext = { code, state, referer, provider, step: realStep };
     const connected: Record<string, OAuth2ProviderData<unknown>> = {};
-    const provider = providers.find(it => it.name === flow.provider);
-    return {
-      req,
-      res,
-      flow,
-      connected,
-      config: initialisedConfig,
-      cookies: cookies(req, res),
-      provider,
-    };
+    const providerConf = providers.find(it => it.name === flow.provider);
+    const config = initialisedConfig;
+    const cookies = cookieUtil(req, res);
+    return { req, res, flow, connected, config, cookies, provider: providerConf };
   }
 
   async function apiRoute(req: NextApiRequest, res: NextApiResponse) {

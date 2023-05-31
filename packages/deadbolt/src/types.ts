@@ -1,6 +1,6 @@
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextApiRequest, NextApiResponse, NextPageContext } from "next";
 import { NextRequest, NextResponse } from "next/server";
-import { CookieUtil } from "src/util/cookies";
+import { CookieUtil } from "src/util/cookieUtil";
 
 export type PromiseOr<T> = Promise<T> | T;
 export type OAuth2ProviderDataMap<T> = {
@@ -8,6 +8,12 @@ export type OAuth2ProviderDataMap<T> = {
 };
 export type OAuth2PluginHook = (context: OAuth2RequestContext) => PromiseOr<void | boolean>;
 export type OAuth2PluginInit = (config: Required<OAuth2Config>) => OAuth2Plugin;
+
+export type AnyRequest = Exclude<NextPageContext["req"], undefined> | NextRequest | NextApiRequest;
+export type AnyResponse =
+  | Exclude<NextPageContext["res"], undefined>
+  | NextResponse
+  | NextApiResponse;
 
 /**
  * saved and optionally persisted data for each provider
@@ -36,8 +42,8 @@ export interface OAuth2FlowContext {
  * Context available to all oauth adapter hooks
  */
 export interface OAuth2RequestContext<Data = any> {
-  req: NextApiRequest | NextRequest;
-  res?: NextApiResponse | NextResponse;
+  req: AnyRequest;
+  res?: AnyResponse;
   cookies: CookieUtil;
   provider?: OAuth2Provider;
   config: Required<OAuth2Config>;
@@ -133,8 +139,11 @@ export interface OAuth2Config {
   secret: string;
   defaultProvider?: string;
   crypto?: Crypto;
+
   encrypt?(data: string): PromiseOr<string>;
+
   decrypt?(data: string): PromiseOr<string>;
+
   // todo: signatures
   // sign?(data: string): PromiseOr<boolean>;
   // verify?(data: string): PromiseOr<string>;
