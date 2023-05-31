@@ -1,0 +1,20 @@
+{
+  "name": "@farbenmeer/deadbolt",
+  "entries": [
+    {
+      "date": "Wed, 31 May 2023 19:41:23 GMT",
+      "tag": "@farbenmeer/deadbolt_v0.1.0",
+      "version": "0.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "nora@reichwald.me",
+            "package": "@farbenmeer/deadbolt",
+            "commit": "fe4cc55b442d1f9109abca6aa55561b781c6160f",
+            "comment": "feat: different example path"
+          }
+        ]
+      }
+    }
+  ]
+}

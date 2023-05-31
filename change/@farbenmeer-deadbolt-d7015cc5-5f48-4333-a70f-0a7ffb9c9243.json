@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "feat: different example path",
-  "packageName": "@farbenmeer/deadbolt",
-  "email": "nora@reichwald.me",
-  "dependentChangeType": "patch"
-}
