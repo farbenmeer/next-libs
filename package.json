@@ -4,9 +4,11 @@
   "description": "monorepo for various next libraries ",
   "private": true,
   "scripts": {
-    "packages:build": "pnpm run -r build",
-    "packages:test": "pnpm run -r --parallel test",
-    "packages:lint": "pnpm run -r --parallel lint"
+    "preinstall": "npx only-allow pnpm",
+    "packages:build": "turbo run build",
+    "packages:test": "turbo run test",
+    "packages:lint": "turbo run lint",
+    "packages:publish": "turbo run build lint test && changeset version && changeset publish"
   },
   "keywords": [],
   "author": "farbenmeer GmbH (https://farbenmeer.de/)",
@@ -21,13 +23,12 @@
   },
   "homepage": "https://github.com/farbenmeer/next-libs#readme",
   "devDependencies": {
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/commit-analyzer": "^9.0.2",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^8.0.7",
-    "@semantic-release/release-notes-generator": "^11.0.1",
-    "tsup": "^6.7.0"
+    "@changesets/cli": "^2.26.1",
+    "@turbo/gen": "^1.10.0",
+    "tsup": "^6.7.0",
+    "turbo": "^1.10.0"
   },
+  "packageManager": "pnpm@7.15.0",
   "release": {
     "branches": ["main"]
   }
