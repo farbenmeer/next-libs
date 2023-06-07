@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from "next";
+import { NextURL } from "next/dist/server/web/next-url";
 import { NextRequest, NextResponse } from "next/server";
 import { randomState } from "src/plugins";
 import {
@@ -9,8 +10,9 @@ import {
   OAuth2ProviderDataMap,
   AnyRequest,
   AnyResponse,
+  OAuth2Config,
 } from "src/types";
-import { cookieUtil, pluginHooks, initConfig } from "src/util";
+import { cookieUtil, pluginHooks, initConfig, codedError } from "src/util";
 import { redirect } from "src/util/redirect";
 
 export function oauth2<Data>({ plugins = [], providers, config: initialConfig }: OAuth2Props) {
@@ -104,7 +106,8 @@ export function oauth2<Data>({ plugins = [], providers, config: initialConfig }:
       }
     }
     if (redirectToLoginPage && providerName && !context.connected[providerName])
-      redirect({ context, url: config.loginPageUrl });
+      if (!redirect({ context, url: config.loginPageUrl }))
+        throw codedError("Could not redirect to login page", "LOGIN_REDIRECT_FAILED");
     context.flow.provider = currentName;
     context.provider = currentProvider;
   }
@@ -128,6 +131,7 @@ export function oauth2<Data>({ plugins = [], providers, config: initialConfig }:
     providerName: Key,
     identifier?: string,
     redirectToLoginPage = true,
+    onError?: (e: unknown, url: NextURL, config: OAuth2Config) => void,
   ) {
     if (identifier && providerName) providerName = `${providerName}.${identifier}` as any;
     return async (req: NextRequest) => {
@@ -140,6 +144,9 @@ export function oauth2<Data>({ plugins = [], providers, config: initialConfig }:
         await context.provider.loadData?.(context);
         if (context.cookies.dirty()) context.cookies.apply(req);
       } catch (e) {
+        if (e && typeof e === "object" && "code" in e && e["code"] === "LOGIN_REDIRECT_FAILED")
+          return NextResponse.redirect(config.loginPageUrl);
+        if (onError) return onError(e, error, config);
         return NextResponse.rewrite(error, { status: 401 });
       }
     };
