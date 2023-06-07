@@ -1,8 +1,16 @@
 # Change Log - @farbenmeer/deadbolt
 
-This log was last generated on Wed, 07 Jun 2023 09:50:04 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Jun 2023 11:14:14 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.2
+
+Wed, 07 Jun 2023 11:14:14 GMT
+
+### Patches
+
+- fix: redirect on refresh failed (nora@reichwald.me)
 
 ## 1.0.1
 
