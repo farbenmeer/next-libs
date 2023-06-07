@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix: can not read `data` of undefined",
-  "packageName": "@farbenmeer/deadbolt",
-  "email": "tobi.l@posteo.at",
-  "dependentChangeType": "patch"
-}

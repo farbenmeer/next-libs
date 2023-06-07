@@ -1,8 +1,16 @@
 # Change Log - @farbenmeer/deadbolt
 
-This log was last generated on Wed, 07 Jun 2023 08:54:36 GMT and should not be manually modified.
+This log was last generated on Wed, 07 Jun 2023 09:50:04 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.1
+
+Wed, 07 Jun 2023 09:50:04 GMT
+
+### Patches
+
+- fix: can not read `data` of undefined (tobi.l@posteo.at)
 
 ## 1.0.0
 

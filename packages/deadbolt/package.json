@@ -1,6 +1,6 @@
 {
   "name": "@farbenmeer/deadbolt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "since": 2023,
   "description": "next oauth2 solution",
   "main": "dist/index.js",
