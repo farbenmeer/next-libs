@@ -139,6 +139,7 @@ export interface OAuth2Config {
   secret: string;
   defaultProvider?: string;
   crypto?: Crypto;
+  loginPageUrl?: string;
 
   encrypt?(data: string): PromiseOr<string>;
 

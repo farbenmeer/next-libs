@@ -62,7 +62,7 @@ export function tsupDefaults(pkg: PkgJson) {
     target: "node18",
     external,
     dts: !watch,
-    minify: !watch,
+    minify: false,
     format: watch ? ["cjs"] : ["esm", "cjs"],
     sourcemap: !watch,
     onSuccess: watch ? "pnpm run start" : undefined,

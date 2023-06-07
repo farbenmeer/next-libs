@@ -1,11 +1,13 @@
-import { buildUrl, HttpClient } from "@farbenmeer/http";
+import { HttpClient } from "@farbenmeer/http";
 import { OAuth2Provider, OAuth2ProviderData, OAuth2RequestContext, PromiseOr } from "src/types";
+import { redirect } from "src/util/redirect";
 
 export interface AzureProviderConfig {
   tenant: string;
   clientId: string;
   clientSecret: string;
   scope?: string;
+
   loadData?(
     context: OAuth2RequestContext,
     config: { tenant: string } & OAuth2ProviderData<any>,
@@ -20,6 +22,8 @@ export interface AzureTokenResponse {
   error?: string;
 }
 
+const THREE_MONTHS = 7776000000;
+
 export function azureProvider(config: AzureProviderConfig): OAuth2Provider {
   const { clientId, clientSecret, tenant, scope = `${clientId}/.default`, loadData } = config;
   const client = new HttpClient({
@@ -29,19 +33,19 @@ export function azureProvider(config: AzureProviderConfig): OAuth2Provider {
 
   return {
     name: `azure.${tenant}`,
-    async authorize({ config, res, flow }) {
+    async authorize(context) {
+      const { config, flow } = context;
+      const url = `https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize`;
       const redirectUri = `${config.baseUrl}/azure.${tenant}/authorize`;
-      if (!res || !("redirect" in res)) return;
-      res.redirect(
-        buildUrl(`https://login.microsoftonline.com/${tenant}/oauth2/v2.0/authorize`, undefined, {
-          response_type: "code",
-          redirect_uri: redirectUri,
-          client_id: clientId,
-          state: flow.state,
-          scope,
-        }).toString(),
-      );
-      return true;
+      const params = {
+        response_type: "code",
+        redirect_uri: redirectUri,
+        client_id: clientId,
+        state: flow.state,
+        scope,
+      };
+      if (redirect({ context, url, params })) return true;
+      else return;
     },
 
     async exchange({ config, flow, connected }) {
@@ -60,6 +64,7 @@ export function azureProvider(config: AzureProviderConfig): OAuth2Provider {
       connected[`azure.${tenant}`] = {
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
+        refreshTokenExpires: data.refresh_token ? new Date(+now + THREE_MONTHS) : undefined,
         tokenType: data.token_type ?? "Bearer",
         accessTokenExpires: new Date(+now + data.expires_in * 1000),
       };
