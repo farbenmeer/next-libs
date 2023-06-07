@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fix: redirect on refresh failed",
+  "packageName": "@farbenmeer/deadbolt",
+  "email": "nora@reichwald.me",
+  "dependentChangeType": "patch"
+}
