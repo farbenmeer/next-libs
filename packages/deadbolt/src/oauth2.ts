@@ -9,7 +9,8 @@ import {
   OAuth2RequestContext,
   OAuth2ProviderDataMap,
   AnyRequest,
-  AnyResponse, OAuth2Config,
+  AnyResponse,
+  OAuth2Config,
 } from "src/types";
 import { cookieUtil, pluginHooks, initConfig, codedError } from "src/util";
 import { redirect } from "src/util/redirect";
