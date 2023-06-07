@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "feat: redirect on refresh failed, support login page, mild refactoring",
+  "packageName": "@farbenmeer/deadbolt",
+  "email": "nora@reichwald.me",
+  "dependentChangeType": "patch"
+}
