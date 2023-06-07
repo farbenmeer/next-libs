@@ -1,75 +1,29 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { NextRequest, NextResponse } from "next/server";
+import { randomState } from "src/plugins";
 import {
   OAuth2Props,
   OAuth2FlowContext,
-  OAuth2Plugin,
-  OAuth2PluginHook,
   OAuth2ProviderData,
   OAuth2RequestContext,
-  OAuth2Config,
   OAuth2ProviderDataMap,
-  OAuth2PluginInit,
   AnyRequest,
   AnyResponse,
 } from "src/types";
-import { cookieUtil } from "src/util/cookieUtil";
-import { encryption, getRandomString } from "src/util/encryption";
+import { cookieUtil, pluginHooks, initConfig } from "src/util";
+import { redirect } from "src/util/redirect";
 
-function initConfig(config: OAuth2Config, defaultProvider?: string): Required<OAuth2Config> {
-  const copy = { defaultProvider, ...config };
-
-  copy.crypto ??= crypto;
-  if (!copy.encrypt || !copy.decrypt) {
-    const { encrypt, decrypt } = encryption({
-      algorithm: "AES-GCM",
-      ivLength: 12,
-      hash: "SHA-256",
-      key: copy.secret,
-      crypto: copy.crypto,
-    });
-    copy.encrypt = encrypt;
-    copy.decrypt = decrypt;
-  }
-  // todo: signatures
-
-  return copy as never;
-}
-
-export function oauth2<Data>({ plugins = [], providers, config }: OAuth2Props) {
-  plugins.push((({ crypto }) => ({
-    generateState(context) {
-      context.flow.state = btoa(getRandomString(24, crypto));
-    },
-  })) as OAuth2PluginInit);
-  const initialisedConfig = initConfig(
-    config,
-    providers.length === 1 ? providers[0].name : undefined,
-  );
-  const initialisedPlugins = plugins.map(it =>
-    typeof it === "function" ? it(initialisedConfig) : it,
-  );
-
-  function hook<Hook extends keyof OAuth2Plugin>(
-    hook: Hook,
-    reverse = false,
-  ): Required<OAuth2Plugin>[Hook] {
-    const hooks = initialisedPlugins
-      .map(plugin => plugin[hook]?.bind(plugin) as OAuth2PluginHook)
-      .filter(it => it);
-    if (reverse) hooks.reverse();
-    return async context => {
-      for (const hook of hooks) if ((await hook(context)) === true) return true;
-      return false;
-    };
-  }
-
-  const storeData = hook("storeData");
-  const retrieveData = hook("retrieveData");
-  const storeState = hook("storeState");
-  const retrieveState = hook("retrieveState");
-  const generateState = hook("generateState");
-  const reviveState = hook("reviveState", true);
+export function oauth2<Data>({ plugins = [], providers, config: initialConfig }: OAuth2Props) {
+  plugins.push(randomState());
+  const config = initConfig(initialConfig, providers);
+  const hooks = pluginHooks(plugins, config, {
+    storeData: false,
+    retrieveData: false,
+    storeState: false,
+    retrieveState: false,
+    generateState: false,
+    reviveState: true,
+  });
 
   function buildContext(req: AnyRequest, res?: AnyResponse, args?: string[]): OAuth2RequestContext {
     const [provider, step] = args ?? ((req as any).query.args as string[]);
@@ -79,7 +33,6 @@ export function oauth2<Data>({ plugins = [], providers, config }: OAuth2Props) {
     const flow: OAuth2FlowContext = { code, state, referer, provider, step: realStep };
     const connected: Record<string, OAuth2ProviderData<unknown>> = {};
     const providerConf = providers.find(it => it.name === flow.provider);
-    const config = initialisedConfig;
     const cookies = cookieUtil(req, res);
     return { req, res, flow, connected, config, cookies, provider: providerConf };
   }
@@ -92,21 +45,21 @@ export function oauth2<Data>({ plugins = [], providers, config }: OAuth2Props) {
 
     switch (context.flow.step) {
       case "authorize":
-        await generateState(context);
-        await storeState(context);
+        await hooks.generateState(context);
+        await hooks.storeState(context);
         await provider.authorize(context);
         break;
       case "exchange":
         {
-          await retrieveState(context);
+          await hooks.retrieveState(context);
           // allow proxy redirect process cancellation
-          if (await reviveState(context)) return;
+          if (await hooks.reviveState(context)) return;
           await provider.exchange(context);
           await provider.loadData?.(context);
           const referer = context.flow.referer ?? "/";
           context.flow.state = context.flow.code = context.flow.referer = undefined;
-          await storeData(context);
-          await storeState(context);
+          await hooks.storeData(context);
+          await hooks.storeState(context);
           res.redirect(referer);
         }
         break;
@@ -114,15 +67,19 @@ export function oauth2<Data>({ plugins = [], providers, config }: OAuth2Props) {
         await refreshIfNecessary(context, provider.name);
         break;
       case "logout":
-        await retrieveData(context);
+        await hooks.retrieveData(context);
         await provider.revoke?.(context);
         delete context.connected[context.flow.provider];
-        await storeData(context);
+        await hooks.storeData(context);
         break;
     }
   }
 
-  async function refreshIfNecessary(context: OAuth2RequestContext, providerName?: string) {
+  async function refreshIfNecessary(
+    context: OAuth2RequestContext,
+    providerName?: string,
+    redirectToLoginPage = false,
+  ) {
     const currentName = context.flow.provider;
     const currentProvider = context.provider;
     for (const provider of providers.filter(it =>
@@ -130,22 +87,24 @@ export function oauth2<Data>({ plugins = [], providers, config }: OAuth2Props) {
     )) {
       context.flow.provider = provider.name;
       context.provider = provider;
-      await retrieveData(context);
+      await hooks.retrieveData(context);
       if (!provider.refresh || !context.connected[provider.name]) continue;
       const data = context.connected[provider.name]!;
       if (data.refreshTokenExpires && data.refreshTokenExpires <= new Date()) return;
       if (data.accessTokenExpires && data.accessTokenExpires <= new Date()) {
         await provider.refresh(context);
-        await storeData(context);
+        await hooks.storeData(context);
       } else if (!data.accessTokenExpires) {
         try {
           await provider.loadData?.(context);
         } catch {
           await provider.refresh(context);
-          await storeData(context);
+          await hooks.storeData(context);
         }
       }
     }
+    if (redirectToLoginPage && providerName && !context.connected[providerName])
+      redirect({ context, url: config.loginPageUrl });
     context.flow.provider = currentName;
     context.provider = currentProvider;
   }
@@ -160,12 +119,16 @@ export function oauth2<Data>({ plugins = [], providers, config }: OAuth2Props) {
     const context = buildContext(req, res, [providerName, "refresh"]);
     await refreshIfNecessary(context);
     if (!context.provider) return undefined;
-    await retrieveData(context);
+    await hooks.retrieveData(context);
     if (!context.connected[context.provider.name].data) await context.provider.loadData?.(context);
     return context.connected[providerName];
   }
 
-  function authorized<Key extends keyof Data & string>(providerName: Key, identifier?: string) {
+  function authorized<Key extends keyof Data & string>(
+    providerName: Key,
+    identifier?: string,
+    redirectToLoginPage = true,
+  ) {
     if (identifier && providerName) providerName = `${providerName}.${identifier}` as any;
     return async (req: NextRequest) => {
       const error = req.nextUrl.clone();
@@ -173,7 +136,7 @@ export function oauth2<Data>({ plugins = [], providers, config }: OAuth2Props) {
       const context = buildContext(req, undefined, [providerName!, "refresh"]);
       if (!context.provider) return NextResponse.rewrite(error, { status: 401 });
       try {
-        await refreshIfNecessary(context, providerName);
+        await refreshIfNecessary(context, providerName, redirectToLoginPage);
         await context.provider.loadData?.(context);
         if (context.cookies.dirty()) context.cookies.apply(req);
       } catch (e) {

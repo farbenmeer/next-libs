@@ -1,5 +1,6 @@
 import { ResponseCookie } from "next/dist/compiled/@edge-runtime/cookies";
 import { OAuth2PluginInit, OAuth2ProviderData } from "src/types";
+import { codedError } from "src/util/error";
 
 export interface CookieStorageOptions {
   name?: string;
@@ -12,12 +13,25 @@ export function cookieStorage({
   cookie,
   saveData = true,
 }: CookieStorageOptions = {}): OAuth2PluginInit {
+  function cookieLengthCheck(max = 4096) {
+    let length = 0;
+    return function (addition: string) {
+      if ((length += addition.length) > max)
+        throw codedError(
+          "Cookie length exceeds 4096 bytes, consider using externalStorage instead",
+          "COOKIE_TOO_LONG",
+        );
+      return addition;
+    };
+  }
+
   return ({ encrypt, decrypt }) => ({
     async storeState({ flow, cookies }) {
       const { state, referer, provider } = flow;
       const value = JSON.stringify({ state, referer, provider });
+      const check = cookieLengthCheck();
       if (!state) cookies.set(`${name}.state`, "");
-      else cookies.set(`${name}.state`, (await encrypt(value)) as string, cookie);
+      else cookies.set(`${name}.state`, check(await encrypt(value)), cookie);
     },
 
     async retrieveState(context) {
@@ -34,10 +48,12 @@ export function cookieStorage({
 
     async storeData({ connected, cookies }) {
       if (!saveData) return;
+      const check = cookieLengthCheck();
       for (const [provider, data] of Object.entries(connected)) {
         if (!data) continue;
         const { data: _, ...state } = data;
-        cookies.set(`${name}.data.${provider}`, await encrypt(JSON.stringify(state)), {
+        const encrypted = await encrypt(JSON.stringify(state));
+        cookies.set(`${name}.data.${provider}`, check(encrypted), {
           expires: state.refreshTokenExpires,
           ...cookie,
         });
