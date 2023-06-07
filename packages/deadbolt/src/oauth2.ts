@@ -120,7 +120,7 @@ export function oauth2<Data>({ plugins = [], providers, config: initialConfig }:
     await refreshIfNecessary(context);
     if (!context.provider) return undefined;
     await hooks.retrieveData(context);
-    if (!context.connected[context.provider.name].data) await context.provider.loadData?.(context);
+    if (!context.connected[context.provider.name]?.data) await context.provider.loadData?.(context);
     return context.connected[providerName];
   }
 
