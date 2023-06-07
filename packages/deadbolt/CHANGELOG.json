@@ -2,6 +2,21 @@
   "name": "@farbenmeer/deadbolt",
   "entries": [
     {
+      "date": "Wed, 07 Jun 2023 08:54:36 GMT",
+      "tag": "@farbenmeer/deadbolt_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "major": [
+          {
+            "author": "nora@reichwald.me",
+            "package": "@farbenmeer/deadbolt",
+            "commit": "6cbde22b59e0b471f4dc71be9c5d4fb9d37b5b38",
+            "comment": "feat: redirect on refresh failed, support login page, mild refactoring"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 31 May 2023 19:41:23 GMT",
       "tag": "@farbenmeer/deadbolt_v0.1.0",
       "version": "0.1.0",
