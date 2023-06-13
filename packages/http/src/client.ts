@@ -74,14 +74,26 @@ export class HttpClient {
 
     let body = undefined;
 
-    if (
-      responseType === "json" ||
-      response.headers.get("content-type")?.toLowerCase()?.startsWith("application/json")
-    )
-      body = await response.json();
-    else if (responseType === "text") body = await response.text();
-    else if (responseType === "blob") body = await response.blob();
-    else if (responseType === "arrayBuffer") body = await response.arrayBuffer();
+    const actualResponseType = responseType ?? this.determineResponseType(response);
+
+    switch (actualResponseType) {
+      case "arrayBuffer":
+        body = await response.arrayBuffer();
+        break;
+      case "blob":
+        body = await response.blob();
+        break;
+      case "text":
+      case "json":
+        body = await response.text();
+        if (actualResponseType === "json")
+          try {
+            body = JSON.parse(body);
+          } catch (e) {
+            throw Object.assign(e as Error, { body, response });
+          }
+        break;
+    }
 
     return {
       raw: response,
@@ -89,6 +101,14 @@ export class HttpClient {
       headers: response.headers,
       status: response.status,
     };
+  }
+
+  determineResponseType(response: Response): "json" | "text" | "blob" | "arrayBuffer" {
+    const contentType = response.headers.get("content-type");
+    if (!contentType) return "blob";
+    if (/\bjson\b/i.test(contentType)) return "json";
+    if (contentType.startsWith("text/")) return "text";
+    return "blob";
   }
 
   prepareBody(body: unknown, contentType?: "form" | "json" | "form-data") {
