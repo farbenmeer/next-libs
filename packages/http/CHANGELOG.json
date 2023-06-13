@@ -1,0 +1,20 @@
+{
+  "name": "@farbenmeer/http",
+  "entries": [
+    {
+      "date": "Tue, 13 Jun 2023 12:00:07 GMT",
+      "tag": "@farbenmeer/http_v0.1.0",
+      "version": "0.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "nora@reichwald.me",
+            "package": "@farbenmeer/http",
+            "commit": "1483fb6e33fb310413c937ed9d8fa41d1f4e98ad",
+            "comment": "feat: better error reporting on invalid json"
+          }
+        ]
+      }
+    }
+  ]
+}

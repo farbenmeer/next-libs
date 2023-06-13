@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "feat: better error reporting on invalid json",
-  "packageName": "@farbenmeer/http",
-  "email": "nora@reichwald.me",
-  "dependentChangeType": "patch"
-}
